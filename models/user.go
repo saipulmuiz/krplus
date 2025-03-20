@@ -26,9 +26,16 @@ type User struct {
 }
 
 type RegisterUser struct {
-	Name     string `json:"name" validate:"required"`
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required,min=6"`
+	FullName    string  `json:"full_name" validate:"required"`
+	LegalName   string  `json:"legal_name"`
+	Email       string  `json:"email" validate:"required,email"`
+	Password    string  `json:"password" validate:"required,min=6"`
+	NIK         string  `json:"nik" validate:"required"`
+	BirthPlace  string  `json:"birth_place"`
+	BirthDate   string  `json:"birth_date"`
+	Salary      float64 `json:"salary"`
+	KTPPhoto    string  `json:"ktp_photo"`
+	SelfiePhoto string  `json:"selfie_photo"`
 }
 
 type LoginUser struct {

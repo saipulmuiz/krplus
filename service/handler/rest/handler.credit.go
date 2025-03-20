@@ -9,6 +9,28 @@ import (
 	"github.com/saipulmuiz/krplus/pkg/utils/utint"
 )
 
+func (h *Handler) CreateCreditLimit(ctx *gin.Context) {
+	var (
+		errx serror.SError
+		req  models.CreateLimitRequest
+	)
+
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		handleError(ctx, http.StatusBadRequest, serror.NewFromError(err))
+		return
+	}
+
+	errx = h.creditUsecase.CreateCreditLimit(req)
+	if errx != nil {
+		handleError(ctx, errx.Code(), errx)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, models.ResponseSuccess{
+		Message: "Credit limit successfully created",
+	})
+}
+
 func (h *Handler) GetCredits(ctx *gin.Context) {
 	var (
 		errx serror.SError

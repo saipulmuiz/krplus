@@ -11,6 +11,7 @@ type UserUsecase interface {
 }
 
 type CreditUsecase interface {
+	CreateCreditLimit(req models.CreateLimitRequest) (errx serror.SError)
 	GetCredits(req models.CreditLimitRequest) (res []models.GetCreditResponse, totalData int64, errx serror.SError)
 }
 

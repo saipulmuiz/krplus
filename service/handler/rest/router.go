@@ -57,6 +57,7 @@ func CreateHandler(
 	authorizedRouter := mainRouter.Group("/")
 	authorizedRouter.Use(middlewares.Auth())
 	{
+		authorizedRouter.POST("/credits", obj.CreateCreditLimit)
 		authorizedRouter.GET("/credits", obj.GetCredits)
 	}
 

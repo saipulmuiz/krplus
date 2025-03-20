@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/saipulmuiz/krplus/models"
 	"github.com/saipulmuiz/krplus/pkg/serror"
@@ -25,20 +26,43 @@ func NewUserUsecase(
 
 func (u *UserUsecase) Register(request *models.RegisterUser) (user *models.User, errx serror.SError) {
 	userArgs := &models.User{
-		FullName: request.Name,
-		Email:    request.Email,
-		Password: request.Password,
+		FullName:    request.FullName,
+		Email:       request.Email,
+		Password:    request.Password,
+		LegalName:   request.LegalName,
+		NIK:         request.NIK,
+		BirthPlace:  request.BirthPlace,
+		BirthDate:   request.BirthDate,
+		Salary:      request.Salary,
+		KTPPhoto:    request.KTPPhoto,
+		SelfiePhoto: request.SelfiePhoto,
+		CreatedBy:   request.Email,
+		CreatedAt:   time.Now(),
+		UpdatedBy:   request.Email,
+		UpdatedAt:   time.Now(),
 	}
 
-	userCheck, err := u.userRepo.GetUserByEmail(request.Email)
+	userCheckByEmail, err := u.userRepo.GetUserByEmail(request.Email)
 	if err != nil && err != gorm.ErrRecordNotFound {
 		errx = serror.NewFromError(err)
 		errx.AddCommentf("[usecase][Register] Failed to get user by email, [email: %s]", request.Email)
 		return
 	}
 
-	if userCheck.UserID != 0 {
+	if userCheckByEmail.UserID != 0 {
 		errx = serror.Newi(http.StatusBadRequest, "Email already registered")
+		return
+	}
+
+	userCheckByNIK, err := u.userRepo.GetUserByNIK(request.NIK)
+	if err != nil && err != gorm.ErrRecordNotFound {
+		errx = serror.NewFromError(err)
+		errx.AddCommentf("[usecase][Register] Failed to get user by NIK, [NIK: %s]", request.NIK)
+		return
+	}
+
+	if userCheckByNIK.UserID != 0 {
+		errx = serror.Newi(http.StatusBadRequest, "NIK already registered")
 		return
 	}
 

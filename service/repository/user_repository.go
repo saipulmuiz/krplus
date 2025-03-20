@@ -25,6 +25,10 @@ func (u *userRepo) GetUserByID(userID int64) (user *models.User, err error) {
 	return user, u.db.Where("user_id = ?", userID).First(&user).Error
 }
 
+func (u *userRepo) GetUserByNIK(nik string) (user *models.User, err error) {
+	return user, u.db.Where("nik = ?", nik).First(&user).Error
+}
+
 func (u *userRepo) GetUserByEmail(email string) (user *models.User, err error) {
 	return user, u.db.Where("email = ?", email).First(&user).Error
 }

@@ -15,6 +15,10 @@ type CreditLimit struct {
 	UpdatedAt            time.Time `json:"updated_at"`
 }
 
+type CreateLimitRequest struct {
+	UserID int64 `json:"user_id" validate:"required"`
+}
+
 type CreditLimitRequest struct {
 	UserID int64 `json:"user_id"`
 	Tenor  int   `json:"tenor"`

@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/saipulmuiz/krplus/models"
@@ -30,7 +31,7 @@ func (u *TransactionUsecase) RecordTransaction(req models.RecordTransactionReque
 	var err error
 
 	// Validate user existence
-	user, err := u.userRepo.GetUserByID(req.UserID)
+	user, err := u.userRepo.GetUserByNIK(req.NIK)
 	if err != nil {
 		errx = serror.NewFromError(err)
 		errx.AddComments("[usecase][RecordTransaction] Error retrieving user")
@@ -38,13 +39,12 @@ func (u *TransactionUsecase) RecordTransaction(req models.RecordTransactionReque
 	}
 
 	if user.UserID == 0 {
-		errx = serror.New("User not found")
-		errx.AddComments("[usecase][RecordTransaction] User not found")
+		errx = serror.Newi(http.StatusNotFound, "User not found")
 		return
 	}
 
 	credits, _, err := u.creditRepo.GetCredits(models.CreditLimitRequest{
-		UserID: req.UserID,
+		UserID: user.UserID,
 		Tenor:  1,
 	})
 	if err != nil {
@@ -56,15 +56,14 @@ func (u *TransactionUsecase) RecordTransaction(req models.RecordTransactionReque
 	credit := (*credits)[0]
 
 	if req.OTR > credit.RemainingLimitAmount {
-		errx = serror.New("Insufficient credit limit")
-		errx.AddComments("[usecase][RecordTransaction] Insufficient credit limit")
+		errx = serror.Newi(http.StatusBadRequest, "Insufficient credit limit")
 		return
 	}
 
 	// Record transaction
 	transaction := models.Transaction{
 		ContractNumber:    req.ContractNumber,
-		UserID:            req.UserID,
+		UserID:            user.UserID,
 		OTR:               req.OTR,
 		AdminFee:          req.AdminFee,
 		InstallmentAmount: req.Installment,

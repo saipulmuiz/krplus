@@ -19,7 +19,7 @@ type Transaction struct {
 
 type RecordTransactionRequest struct {
 	ContractNumber string  `json:"contract_number"`
-	UserID         int64   `json:"user_id"`
+	NIK            string  `json:"nik"`
 	OTR            float64 `json:"otr"`
 	AdminFee       float64 `json:"admin_fee"`
 	Installment    float64 `json:"installment"`
