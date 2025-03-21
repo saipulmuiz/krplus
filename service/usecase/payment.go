@@ -61,7 +61,7 @@ func (u *PaymentUsecase) CreatePayment(req models.PaymentRequest) (errx serror.S
 		return
 	}
 	if len(*payments) > transaction.Tenor {
-		errx = serror.Newi(http.StatusBadRequest, "Payment amount exceeds the transaction tenor")
+		errx = serror.Newi(http.StatusBadRequest, "Transaction already paid off")
 		return
 	}
 
