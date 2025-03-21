@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/saipulmuiz/krplus/models"
@@ -73,34 +74,47 @@ func (u *TransactionUsecase) RecordTransaction(req models.RecordTransactionReque
 		return
 	}
 
-	// Record transaction
-	transaction := models.Transaction{
-		ContractNumber:    req.ContractNumber,
-		UserID:            user.UserID,
-		OTR:               req.OTR,
-		Tenor:             req.Tenor,
-		AdminFee:          req.AdminFee,
-		InstallmentAmount: utfloat.Round(req.Installment, 2),
-		Interest:          req.Interest,
-		AssetName:         req.AssetName,
-		CreatedAt:         time.Now(),
-		UpdatedAt:         time.Now(),
-	}
+	var wg sync.WaitGroup
+	var transactionErr, creditErr error
 
-	err = u.transactionRepo.CreateTransaction(&transaction)
-	if err != nil {
-		errx = serror.NewFromError(err)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		transaction := models.Transaction{
+			ContractNumber:    req.ContractNumber,
+			UserID:            user.UserID,
+			OTR:               req.OTR,
+			Tenor:             req.Tenor,
+			AdminFee:          req.AdminFee,
+			InstallmentAmount: utfloat.Round(req.Installment, 2),
+			Interest:          req.Interest,
+			AssetName:         req.AssetName,
+			CreatedAt:         time.Now(),
+			UpdatedAt:         time.Now(),
+		}
+
+		transactionErr = u.transactionRepo.CreateTransaction(&transaction)
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		credit.RemainingLimitAmount -= req.OTR
+		credit.UsedLimitAmount += req.OTR
+		credit.UpdatedAt = time.Now()
+		creditErr = u.creditRepo.UpdateCredit(credit.CreditID, credit)
+	}()
+
+	wg.Wait()
+
+	if transactionErr != nil {
+		errx = serror.NewFromError(transactionErr)
 		errx.AddComments("[usecase][RecordTransaction] Error creating transaction")
 		return
 	}
 
-	// Update credit limit
-	credit.RemainingLimitAmount -= req.OTR
-	credit.UsedLimitAmount += req.OTR
-	credit.UpdatedAt = time.Now()
-	err = u.creditRepo.UpdateCredit(credit.CreditID, credit)
-	if err != nil {
-		errx = serror.NewFromError(err)
+	if creditErr != nil {
+		errx = serror.NewFromError(creditErr)
 		errx.AddComments("[usecase][RecordTransaction] Error updating credit limit")
 		return
 	}

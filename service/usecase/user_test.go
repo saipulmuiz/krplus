@@ -20,6 +20,7 @@ func Test_UserUsecase_Register(t *testing.T) {
 		request          *models.RegisterUser
 		onRegister       func(mock *mocks.MockUserRepository)
 		onGetUserByEmail func(mock *mocks.MockUserRepository)
+		onGetUserByNIK   func(mock *mocks.MockUserRepository)
 	}
 
 	var testTable []testCase
@@ -27,52 +28,68 @@ func Test_UserUsecase_Register(t *testing.T) {
 		name:      "success",
 		wantError: false,
 		request: &models.RegisterUser{
-			Name:     "John Doe",
-			Email:    "john@example.com",
-			Password: "password123",
+			FullName:  "John Doe",
+			LegalName: "John Doe",
+			Email:     "john@example.com",
+			Password:  "password123",
+			NIK:       "1234567890",
 		},
 		onGetUserByEmail: func(mock *mocks.MockUserRepository) {
 			mock.EXPECT().GetUserByEmail("john@example.com").Return(&models.User{}, nil)
 		},
+		onGetUserByNIK: func(mock *mocks.MockUserRepository) {
+			mock.EXPECT().GetUserByNIK("1234567890").Return(&models.User{}, nil)
+		},
 		onRegister: func(mock *mocks.MockUserRepository) {
-			mock.EXPECT().Register(&models.User{
-				FullName: "John Doe",
-				Email:    "john@example.com",
-				Password: "password123",
-			}).Return(&models.User{
-				UserID:   1,
-				FullName: "John Doe",
-				Email:    "john@example.com",
-			}, nil)
+			mock.EXPECT().Register(gomock.Any()).DoAndReturn(func(user *models.User) (*models.User, error) {
+				return &models.User{
+					UserID:    1,
+					FullName:  user.FullName,
+					LegalName: user.LegalName,
+					Email:     user.Email,
+					NIK:       user.NIK,
+				}, nil
+			})
 		},
 		expectedResponse: &models.User{
-			UserID:   1,
-			FullName: "John Doe",
-			Email:    "john@example.com",
+			UserID:    1,
+			FullName:  "John Doe",
+			LegalName: "John Doe",
+			Email:     "john@example.com",
+			NIK:       "1234567890",
 		},
 	})
 
 	testTable = append(testTable, testCase{
-		name:      "email already registered",
+		name:      "user already registered",
 		wantError: true,
 		request: &models.RegisterUser{
-			Name:     "Jane Doe",
-			Email:    "jane@example.com",
-			Password: "password123",
+			FullName:  "John Doe",
+			LegalName: "John Doe",
+			Email:     "john@example.com",
+			Password:  "password123",
+			NIK:       "1234567890",
 		},
 		onGetUserByEmail: func(mock *mocks.MockUserRepository) {
-			mock.EXPECT().GetUserByEmail("jane@example.com").Return(&models.User{UserID: 2}, nil)
+			mock.EXPECT().GetUserByEmail("john@example.com").Return(&models.User{
+				UserID:   1,
+				FullName: "John Doe",
+				Email:    "john@example.com",
+				NIK:      "1234567890",
+			}, nil)
 		},
 		expectedResponse: nil,
 	})
 
 	testTable = append(testTable, testCase{
-		name:      "error checking user by email",
+		name:      "error checking by email",
 		wantError: true,
 		request: &models.RegisterUser{
-			Name:     "Error User",
-			Email:    "error@example.com",
-			Password: "password123",
+			FullName:  "Jane Doe",
+			LegalName: "Jane Doe",
+			Email:     "error@example.com",
+			Password:  "password123",
+			NIK:       "0987654321",
 		},
 		onGetUserByEmail: func(mock *mocks.MockUserRepository) {
 			mock.EXPECT().GetUserByEmail("error@example.com").Return(nil, errors.New("database error"))
@@ -89,6 +106,10 @@ func Test_UserUsecase_Register(t *testing.T) {
 
 			if tc.onGetUserByEmail != nil {
 				tc.onGetUserByEmail(userRepo)
+			}
+
+			if tc.onGetUserByNIK != nil {
+				tc.onGetUserByNIK(userRepo)
 			}
 
 			if tc.onRegister != nil {
