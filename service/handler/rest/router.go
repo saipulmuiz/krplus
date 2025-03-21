@@ -15,17 +15,20 @@ type Handler struct {
 	userUsecase        api.UserUsecase
 	creditUsecase      api.CreditUsecase
 	transactionUsecase api.TransactionUsecase
+	paymentUsecase     api.PaymentUsecase
 }
 
 func CreateHandler(
 	userUsecase api.UserUsecase,
 	creditUsecase api.CreditUsecase,
 	transactionUsecase api.TransactionUsecase,
+	paymentUsecase api.PaymentUsecase,
 ) *gin.Engine {
 	obj := Handler{
 		userUsecase:        userUsecase,
 		creditUsecase:      creditUsecase,
 		transactionUsecase: transactionUsecase,
+		paymentUsecase:     paymentUsecase,
 	}
 
 	var maxSize int64 = 1024 * 1024 * 10 //10 MB
@@ -60,6 +63,7 @@ func CreateHandler(
 		authorizedRouter.POST("/credits", obj.CreateCreditLimit)
 		authorizedRouter.GET("/credits", obj.GetCredits)
 		authorizedRouter.POST("/transactions", obj.RecordTransaction)
+		authorizedRouter.POST("/payments", obj.CreatePayment)
 	}
 
 	return r

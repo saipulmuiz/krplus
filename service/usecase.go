@@ -18,3 +18,7 @@ type CreditUsecase interface {
 type TransactionUsecase interface {
 	RecordTransaction(req models.RecordTransactionRequest) (errx serror.SError)
 }
+
+type PaymentUsecase interface {
+	CreatePayment(req models.PaymentRequest) (errx serror.SError)
+}

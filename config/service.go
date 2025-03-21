@@ -17,10 +17,14 @@ func (cfg *Config) InitService() (errx serror.SError) {
 	transactionRepo := repository.NewTransactionRepo(cfg.DB)
 	transactionUsecase := usecase.NewTransactionUsecase(transactionRepo, creditRepo, userRepo)
 
+	paymentRepo := repository.NewPaymentRepo(cfg.DB)
+	paymentUsecase := usecase.NewPaymentUsecase(paymentRepo, transactionRepo, creditRepo, userRepo)
+
 	route := rest.CreateHandler(
 		userUsecase,
 		creditUsecase,
 		transactionUsecase,
+		paymentUsecase,
 	)
 
 	cfg.Server = route

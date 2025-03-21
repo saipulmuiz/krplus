@@ -12,3 +12,10 @@ type Payment struct {
 	UpdatedBy     string
 	UpdatedAt     time.Time `json:"updated_at"`
 }
+
+type PaymentRequest struct {
+	TransactionID int64   `json:"transaction_id"`
+	PaymentAmount float64 `json:"payment_amount"`
+	PaymentDate   string  `json:"payment_date"`
+	CreatedBy     string
+}

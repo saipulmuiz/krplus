@@ -20,6 +20,6 @@ func (r *paymentRepo) GetPaymentsByTransactionID(transactionId int64) (*[]models
 	return &payments, err
 }
 
-func (r *paymentRepo) RecordPayment(payment *models.Payment) error {
+func (r *paymentRepo) CreatePayment(payment *models.Payment) error {
 	return r.db.Create(payment).Error
 }

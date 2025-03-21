@@ -19,11 +19,12 @@ type CreditRepository interface {
 }
 
 type TransactionRepository interface {
+	GetTransactionByID(transactionID int64) (transaction *models.Transaction, err error)
 	GetTransactionsByUserID(userId int64) (*[]models.Transaction, error)
 	CreateTransaction(transaction *models.Transaction) error
 }
 
 type PaymentRepository interface {
 	GetPaymentsByTransactionID(transactionId int64) (*[]models.Payment, error)
-	RecordPayment(payment *models.Payment) error
+	CreatePayment(payment *models.Payment) error
 }
