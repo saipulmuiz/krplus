@@ -7,6 +7,7 @@ type Transaction struct {
 	ContractNumber    string `gorm:"unique;not null"`
 	UserID            int64  `gorm:"not null"`
 	OTR               float64
+	Tenor             int
 	AdminFee          float64
 	InstallmentAmount float64
 	Interest          float64
@@ -25,4 +26,5 @@ type RecordTransactionRequest struct {
 	Installment    float64 `json:"installment"`
 	Interest       float64 `json:"interest"`
 	AssetName      string  `json:"asset_name"`
+	Tenor          int     `json:"tenor"`
 }

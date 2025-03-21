@@ -6,6 +6,7 @@ import (
 
 	"github.com/saipulmuiz/krplus/models"
 	"github.com/saipulmuiz/krplus/pkg/serror"
+	"github.com/saipulmuiz/krplus/pkg/utils/utfloat"
 	api "github.com/saipulmuiz/krplus/service"
 )
 
@@ -45,11 +46,16 @@ func (u *TransactionUsecase) RecordTransaction(req models.RecordTransactionReque
 
 	credits, _, err := u.creditRepo.GetCredits(models.CreditLimitRequest{
 		UserID: user.UserID,
-		Tenor:  1,
+		Tenor:  req.Tenor,
 	})
 	if err != nil {
 		errx = serror.NewFromError(err)
 		errx.AddComments("[usecase][RecordTransaction] Error retrieving credit")
+		return
+	}
+
+	if len(*credits) == 0 {
+		errx = serror.Newi(http.StatusNotFound, "Credit not found")
 		return
 	}
 
@@ -60,13 +66,21 @@ func (u *TransactionUsecase) RecordTransaction(req models.RecordTransactionReque
 		return
 	}
 
+	// calculate installment
+	req.Installment = (req.OTR + req.AdminFee) + (req.OTR+req.Interest)/float64(req.Tenor)
+	if req.Installment <= 0 {
+		errx = serror.Newi(http.StatusBadRequest, "Invalid installment amount")
+		return
+	}
+
 	// Record transaction
 	transaction := models.Transaction{
 		ContractNumber:    req.ContractNumber,
 		UserID:            user.UserID,
 		OTR:               req.OTR,
+		Tenor:             req.Tenor,
 		AdminFee:          req.AdminFee,
-		InstallmentAmount: req.Installment,
+		InstallmentAmount: utfloat.Round(req.Installment, 2),
 		Interest:          req.Interest,
 		AssetName:         req.AssetName,
 		CreatedAt:         time.Now(),

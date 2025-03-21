@@ -59,6 +59,7 @@ func CreateHandler(
 	{
 		authorizedRouter.POST("/credits", obj.CreateCreditLimit)
 		authorizedRouter.GET("/credits", obj.GetCredits)
+		authorizedRouter.POST("/transactions", obj.RecordTransaction)
 	}
 
 	return r
